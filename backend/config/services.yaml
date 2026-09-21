@@ -1,0 +1,47 @@
+parameters:
+    # Okno rezerwacji: koniec rezerwacji nie może wypadać później niż teraz + ten interwał (ISO 8601).
+    env(BOOKING_MAX_ADVANCE): 'P1Y'
+    # Czas życia tokenu API (interwał ISO 8601).
+    env(API_TOKEN_TTL): 'PT12H'
+    env(DEMO_USER_EMAIL): ''
+    env(DEMO_USER_PASSWORD): ''
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/Domain/Entity/'
+            - '../src/Domain/ValueObject/'
+            - '../src/Domain/Exception/'
+            - '../src/Application/*/*Command.php'
+            - '../src/Application/Auth/IssuedToken.php'
+            - '../src/UI/Http/Request/'
+
+    # Porty (interfejsy) -> adaptery.
+    App\Domain\Repository\BookingRepositoryInterface: '@App\Infrastructure\Persistence\DoctrineBookingRepository'
+    App\Domain\Repository\ResourceRepositoryInterface: '@App\Infrastructure\Persistence\DoctrineResourceRepository'
+    App\Domain\Repository\UserRepositoryInterface: '@App\Infrastructure\Persistence\DoctrineUserRepository'
+    App\Domain\Repository\ApiTokenRepositoryInterface: '@App\Infrastructure\Persistence\DoctrineApiTokenRepository'
+
+    App\Domain\Policy\BookingWindowPolicy:
+        arguments:
+            $maxAdvance: '%env(BOOKING_MAX_ADVANCE)%'
+
+    App\Application\Auth\LoginHandler:
+        arguments:
+            $tokenTtl: '%env(API_TOKEN_TTL)%'
+
+    App\Infrastructure\Console\SeedCommand:
+        arguments:
+            $demoEmail: '%env(DEMO_USER_EMAIL)%'
+            $demoPassword: '%env(DEMO_USER_PASSWORD)%'
+
+when@test:
+    services:
+        test.rate_limiter_storage:
+            class: Symfony\Component\RateLimiter\Storage\InMemoryStorage

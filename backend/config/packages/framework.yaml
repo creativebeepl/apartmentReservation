@@ -1,0 +1,32 @@
+framework:
+    secret: '%env(APP_SECRET)%'
+
+    # Czyste API bezstanowe: uwierzytelnianie wyłącznie tokenem Bearer.
+    session: false
+
+    serializer:
+        name_converter: 'serializer.name_converter.camel_case_to_snake_case'
+
+    rate_limiter:
+        # Ochrona logowania przed zgadywaniem haseł: osobno para IP+e-mail i samo IP.
+        login_credentials:
+            policy: sliding_window
+            limit: 5
+            interval: '1 minute'
+        login_ip:
+            policy: sliding_window
+            limit: 30
+            interval: '1 minute'
+
+when@test:
+    framework:
+        test: true
+        cache:
+            app: cache.adapter.array
+        rate_limiter:
+            # Magazyn w pamięci: nie przeżywa restartu jądra (brak przecieków między testami),
+            # ale też nie jest czyszczony między żądaniami, gdy test wyłączy reboot jądra.
+            login_credentials:
+                storage_service: test.rate_limiter_storage
+            login_ip:
+                storage_service: test.rate_limiter_storage

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<ruleset name="reservation">
+    <description>PSR-12 dla kodu aplikacji i testów.</description>
+
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="extensions" value="php"/>
+    <arg value="sp"/>
+
+    <file>src</file>
+    <file>tests</file>
+    <file>config</file>
+
+    <exclude-pattern>config/reference.php</exclude-pattern>
+    <exclude-pattern>config/preload.php</exclude-pattern>
+    <exclude-pattern>tests/bootstrap.php</exclude-pattern>
+
+    <rule ref="PSR12"/>
+
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="140"/>
+            <property name="absoluteLineLimit" value="0"/>
+        </properties>
+    </rule>
+</ruleset>
