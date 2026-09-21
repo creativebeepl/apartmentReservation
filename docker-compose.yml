@@ -1,0 +1,42 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8200}:8000"
+    volumes:
+      - ./backend:/app
+      - backend-vendor:/app/vendor
+      - backend-var:/app/var
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      APP_SECRET: ${APP_SECRET:-dev-only-secret-change-me}
+      DEMO_USER_EMAIL: ${DEMO_USER_EMAIL:-}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-}
+      BOOKING_MAX_ADVANCE: ${BOOKING_MAX_ADVANCE:-P1Y}
+      API_TOKEN_TTL: ${API_TOKEN_TTL:-PT12H}
+    entrypoint: ["/app/docker/entrypoint.sh"]
+    command: ["php", "-S", "0.0.0.0:8000", "-t", "public"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-3100}:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    environment:
+      # Vite przekazuje żądania /api do backendu wewnątrz sieci Dockera.
+      API_PROXY_TARGET: http://backend:8000
+    entrypoint: ["/app/docker/entrypoint.sh"]
+    command: ["npm", "run", "dev"]
+    depends_on:
+      - backend
+
+volumes:
+  backend-vendor:
+  backend-var:
+  frontend-node-modules:
